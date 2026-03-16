@@ -3,7 +3,7 @@ import torch
 from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 def train_step(model: torch.nn.Module, 
                dataloader: torch.utils.data.DataLoader, 
@@ -81,10 +81,10 @@ def test_step(model: torch.nn.Module,
 
 @dataclass
 class TrainResults():
-   train_loss: list[float] = []
-   train_acc: list[float] = []
-   test_loss: list[float] = []
-   test_acc: list[float] = []
+   train_loss: list[float] = field(default_factory=list)
+   train_acc: list[float] = field(default_factory=list)
+   test_loss: list[float] = field(default_factory=list)
+   test_acc: list[float] = field(default_factory=list)
 
 def train(model: torch.nn.Module, 
           train_dataloader: torch.utils.data.DataLoader, 
