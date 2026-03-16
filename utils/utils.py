@@ -17,3 +17,7 @@ def save_model(model: torch.nn.Module,
   print(f"[INFO] Saving model to: {model_save_path}")
   torch.save(obj=model.state_dict(),
              f=model_save_path)
+
+def set_seeds(seed: int):
+  torch.manual_seed(seed)
+  torch.cuda.manual_seed(seed)
