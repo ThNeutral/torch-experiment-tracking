@@ -1,11 +1,9 @@
 import torch
 from torch import nn
-from torch.utils.tensorboard import SummaryWriter
-import torchvision
+from torchvision import transforms
 import torchsummary
 from utils import (
 	create_image_dataloader, 
-	set_seeds, 
 	train, 
 	create_writer
 )
@@ -28,7 +26,7 @@ def main():
 			for source_name, source in train_dataloader_sources.items():
 				experiment_number += 1  
 
-				model, weights = factory(
+				model, _ = factory(
 					out_features=3,
 					device=device,
 					seed=42
@@ -39,18 +37,34 @@ def main():
 				print(f"[INFO] DataLoader: {source_name}")
 				print(f"[INFO] Number of epochs: {epochs}")
 				
-				transform = weights.transforms()
+				normalize = transforms.Normalize(
+					mean=[0,485, 0.456, 0.406],
+					std=[0.229, 0.224, 0.225]
+				)
+
+				train_transform = transforms.Compose([
+					transforms.Resize((224, 224)),
+					transforms.TrivialAugmentWide(),
+					transforms.ToTensor(),
+					normalize
+				])
+
+				test_transform = transforms.Compose([
+					transforms.Resize((224, 224)),
+					transforms.ToTensor(),
+					normalize
+				])
 				
 				train_dataloader, data_classes = create_image_dataloader(
 					dir=source,
-					transform=transform,
+					transform=train_transform,
 					batch_size=32,
 					num_workers=1
 				)
 
 				test_dataloader, _ = create_image_dataloader(
 					dir="data/pss_10/train",
-					transform=transform,
+					transform=test_transform,
 					batch_size=32,
 					num_workers=1
 				)
