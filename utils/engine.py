@@ -1,5 +1,6 @@
 import torch
 from torch.utils.tensorboard import SummaryWriter
+from torch.profiler import profile, schedule, tensorboard_trace_handler 
 
 from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
@@ -99,28 +100,42 @@ def train(model: torch.nn.Module,
 	# Create empty results dictionary
 	results = TrainResults()
 
-	# Loop through training and testing steps for a number of epochs
-	for epoch in tqdm(range(epochs)):
-			train_loss, train_acc = train_step(model=model,
-																					dataloader=train_dataloader,
-																					loss_fn=loss_fn,
-																					optimizer=optimizer,
-																					device=device)
-			test_loss, test_acc = test_step(model=model,
-					dataloader=test_dataloader,
-					loss_fn=loss_fn,
-					device=device)
+	with profile(
+		schedule=schedule(
+			wait=2,
+			warmup=2,
+			active=6,
+			repeat=1
+		),
+		with_stack=True,
+		profile_memory=True,
+		on_trace_ready=tensorboard_trace_handler(writer.log_dir)
+	) as profiler:
+		for epoch in tqdm(range(epochs)):
+			train_loss, train_acc = train_step(
+				model=model,
+				dataloader=train_dataloader,
+				loss_fn=loss_fn,
+				optimizer=optimizer,
+				device=device
+			)
+			test_loss, test_acc = test_step(
+				model=model,
+				dataloader=test_dataloader,
+				loss_fn=loss_fn,
+				device=device
+			)
+				
+			profiler.step()
 
-			# Print out what's happening
 			print(
-					f"Epoch: {epoch+1} | "
-					f"train_loss: {train_loss:.4f} | "
-					f"train_acc: {train_acc:.4f} | "
-					f"test_loss: {test_loss:.4f} | "
-					f"test_acc: {test_acc:.4f}"
+				f"Epoch: {epoch+1} | "
+				f"train_loss: {train_loss:.4f} | "
+				f"train_acc: {train_acc:.4f} | "
+				f"test_loss: {test_loss:.4f} | "
+				f"test_acc: {test_acc:.4f}"
 			)
 
-			# Update results dictionary
 			results.train_loss.append(train_loss)
 			results.train_acc.append(train_acc)
 			results.test_loss.append(test_loss)
@@ -143,11 +158,12 @@ def train(model: torch.nn.Module,
 				},
 				global_step=epoch
 			)
-			
+				
 			writer.add_graph(
 				model=model,
 				input_to_model=torch.randn(32, 3, 224, 224).to(device)
 			)
+			
 
 	# Return the filled results at the end of the epochs
 	return results

@@ -15,9 +15,13 @@ from models import (
 def execute():
 	device = torch.accelerator.current_accelerator() if torch.accelerator.is_available() else torch.cpu.current_device()
 
-	num_epochs = [5, 10]
-	model_factories = [create_effnetb0, create_effnetb2]
-	train_dataloader_sources = {"pss_10": "data/pss_10/train", "pss_20": "data/pss_20/train"}
+	# num_epochs = [5, 10]
+	# model_factories = [create_effnetb0, create_effnetb2]
+	# train_dataloader_sources = {"pss_10": "data/pss_10/train", "pss_20": "data/pss_20/train"}
+
+	num_epochs = [5]
+	model_factories = [create_effnetb0]
+	train_dataloader_sources = {"pss_10": "data/pss_10/train"}
 
 	experiment_number = 0
 
@@ -38,7 +42,7 @@ def execute():
 				print(f"[INFO] Number of epochs: {epochs}")
 				
 				normalize = transforms.Normalize(
-					mean=[0,485, 0.456, 0.406],
+					mean=[0.485, 0.456, 0.406],
 					std=[0.229, 0.224, 0.225]
 				)
 

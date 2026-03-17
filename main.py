@@ -11,12 +11,10 @@ from models import (
 	create_effnetb2,
 	create_effnetb3
 )
-from food101_experiments import execute
+import pss_experiments
 
 def main():
-	execute()
-	
-	pass
+	pss_experiments.execute()
 
 if __name__ == "__main__":
 	main()
